@@ -258,9 +258,10 @@ def get_page_title(host, port, fallback_name="Service"):
             # Czyścimy z białych znaków
             return " ".join(title.split())
         return fallback_name if fallback_name else f"Port {port}"
-    except Exception:
-        pass
+    except Exception as e:
+        logging.info(f"Skipped {url} due to error: {e}")
     return None
+
 
 def categorize_service(name):
     name_lower = name.lower()
