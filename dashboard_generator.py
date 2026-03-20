@@ -207,7 +207,8 @@ def get_open_ports(node):
     if is_local:
         cmd = ["ss", "-t", "-l", "-n"]
     else:
-        cmd = ["ssh", "-o", "ConnectTimeout=5", f"{ssh_user}@{host}", "ss", "-t", "-l", "-n"]
+        cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", f"{ssh_user}@{host}", "ss", "-t", "-l", "-n"]
+
 
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
