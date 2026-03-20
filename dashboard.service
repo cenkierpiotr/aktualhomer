@@ -1,0 +1,14 @@
+[Unit]
+Description=Custom Dynamic Dashboard Generator & Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/custom-dashboard
+ExecStart=/usr/bin/python3 dashboard_generator.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

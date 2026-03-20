@@ -1,6 +1,6 @@
-# Homer Auto Updater Configuration
-# homer_config_path: "/opt/homer/assets/config.yml" # Pozostaw puste dla autowykrywania
+# Dashboard Generator Configuration
 scan_interval: 60 # seconds
+server_port: 8080 # Port to serve the dashboard on
 
 nodes:
   - name: "Serwer Główny"
@@ -12,4 +12,6 @@ nodes:
 
 exclude_ports:
   - 22    # SSH
-  - 8080  # Homer
+  - 8080  # Dashboard itself
+  - 53    # DNS
+  - 3306  # MySQL

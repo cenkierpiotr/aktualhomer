@@ -1,20 +1,21 @@
-# Homer Auto Updater
+# Custom Dynamic Dashboard (Substytut Homera)
 
-Automatyczny aktualizator dashboardu Homer. Skanuje otwarte porty na zdefiniowanych węzłach Tailscale, weryfikuje dostępność HTTP, pobiera tytuły stron i dynamicznie aktualizuje plik `config.yml` Homera.
+Ten skrypt działa jako **samodzielny serwer dashboardu**. Automatycznie skanuje otwarte porty na zdefiniowanych węzłach Tailscale, weryfikuje dostępność HTTP, pobiera tytuły stron i kategoryzuje usługi w piękny, cybernetyczny layout (AI, System, Pliki).
 
-Zaprojektowany do działania jako usługa systemd na serwerze głównym.
+Zaprojektowany do działania jako usługa systemd na serwerze głównym (`100.69.201.80`).
 
 ---
 
 ## 🚀 Instalacja i Uruchomienie
 
-Wykonaj poniższe kroki na serwerze z Homerem (`100.69.201.80`):
+Wykonaj poniższe kroki na serwerze głównym (`Mikrus`):
 
-### 1. Sklonuj repozytorium
+### 1. Sklonuj projekt
+Jeśli masz już pobrany `/opt/homer-link-syncer`, możesz go usunąć lub użyć nowej ścieżki:
 ```bash
-sudo git clone https://github.com/cenkierpiotr/aktualhomer /opt/homer-link-syncer
-sudo chown -R $USER:$USER /opt/homer-link-syncer
-cd /opt/homer-link-syncer
+sudo git clone https://github.com/cenkierpiotr/aktualhomer /opt/custom-dashboard
+sudo chown -R $USER:$USER /opt/custom-dashboard
+cd /opt/custom-dashboard
 ```
 
 ### 2. Zainstaluj Zależności
@@ -23,23 +24,24 @@ sudo apt update
 sudo apt install -y python3-yaml python3-requests
 ```
 
-### 3. Skonfiguruj
-Edytuj `config.yaml` dostosowując ścieżkę do Twojego `config.yml` oraz listę serwerów:
+### 3. Skonfiguruj `config.yaml`
+Edytuj `config.yaml` za pomocą `nano config.yaml`, aby dopasować listę serwerów (node'ów):
 ```yaml
-homer_config_path: "/opt/homer/assets/config.yml" # Ścieżka do Twojego Homera
-scan_interval: 60                                 # Co ile sekund skanować
+scan_interval: 60 # Skanowanie co 60 sekund
+server_port: 8080 # Port, na którym będzie dostępny dashboard
 
 nodes:
-  - name: "Serwer Główny"
-    host: "100.69.201.80"
-    is_local: true
+  - name: "Serwer Główny"   # Nazwa do wyświetlenia (np. Mikrus)
+    host: "100.69.201.80"  # IP Tailscale
+    is_local: true          # Skanowanie lokalne (nie wymaga SSH)
   - name: "Zdalny VPS"
     host: "100.99.158.2"
-    ssh_user: "root" # Użytkownik SSH
+    ssh_user: "root"        # SSH do skanowania zdalnego
 
 exclude_ports:
   - 22    # SSH
-  - 8080  # Homer
+  - 53    # DNS
+  - 8080  # Sam dashboard (zapobiega pętli)
 ```
 
 > [!NOTE]
@@ -50,14 +52,24 @@ exclude_ports:
 ---
 
 ### 4. Uruchom Serwis
+Aby skrypt działał w tle i serwował stronę na porcie `8080`:
+
 ```bash
-sudo cp homer_updater.service /etc/systemd/system/homer_updater.service
+sudo cp dashboard.service /etc/systemd/system/dashboard.service
 sudo systemctl daemon-reload
-sudo systemctl enable homer_updater
-sudo systemctl start homer_updater
+sudo systemctl enable dashboard
+sudo systemctl start dashboard
 ```
 
-#### Monitorowanie Loganów
+#### Monitorowanie Działania (Logi)
 ```bash
-tail -f /opt/homer-link-syncer/homer_updater.log
+tail -f /opt/custom-dashboard/dashboard.log
 ```
+
+---
+
+## 🔒 Automatyczna Kategoryzacja:
+Skrypt dopasowuje elementy na podstawie **Słów Kluczowych** w tytule strony:
+- **AI** (Cyan): `webui`, `chat`, `ollama`, `ai`, `gpt`, `rag`, `crawler`, `psychology`.
+- **System** (Magenta): `Wszystko inne` (np. Portainer, Netdata, Uptime).
+- **Storage/Pliki** (Lime): `cloud`, `sync`, `drive`, `storage`, `gokapi`, `backup`, `file`, `pliki`.
