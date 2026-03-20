@@ -1,10 +1,15 @@
-homer_config_path: "/config/.gemini/antigravity/scratch/homer-link-syncer/assets/config.yml"
-scan_interval: 5
+# Homer Auto Updater Configuration
+# homer_config_path: "/opt/homer/assets/config.yml" # Pozostaw puste dla autowykrywania
+scan_interval: 60 # seconds
 
 nodes:
-  - name: "Test Node"
-    host: "127.0.0.1"
+  - name: "Serwer Główny"
+    host: "100.69.201.80"
     is_local: true
+  - name: "Zdalny VPS"
+    host: "100.99.158.2"
+    ssh_user: "root"
 
 exclude_ports:
-  - 22
+  - 22    # SSH
+  - 8080  # Homer

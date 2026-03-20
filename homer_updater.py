@@ -32,6 +32,53 @@ def load_config():
         logging.error(f"Error loading config.yaml: {e}")
         return None
 
+def find_homer_config_path():
+    # 1. Check standard paths
+    standard_paths = [
+        "/opt/homer/assets/config.yml",
+        "/var/www/homer/assets/config.yml",
+        "/opt/homer/config.yml"
+    ]
+    for p in standard_paths:
+        if os.path.exists(p):
+            logging.info(f"Auto-discovered Homer config at standard path: {p}")
+            return p
+
+    # 2. Check running docker containers named "homer"
+    try:
+        logging.info("Checking Docker inspect for 'homer' container volumes...")
+        import json
+        res = subprocess.run(["docker", "inspect", "homer"], capture_output=True, text=True)
+        if res.returncode == 0:
+            data = json.loads(res.stdout)
+            if data and 'Mounts' in data[0]:
+                for mount in data[0]['Mounts']:
+                    # Look for assets folder mount destination
+                    if "/assets" in mount.get('Destination', ''):
+                        host_path = mount.get('Source')
+                        config_path = os.path.join(host_path, 'config.yml')
+                        if os.path.exists(config_path):
+                            logging.info(f"Auto-discovered Homer config from Docker inspect: {config_path}")
+                            return config_path
+    except Exception as e:
+        logging.debug(f"Docker inspect failed: {e}")
+
+    # 3. Fallback: Search in common directories
+    try:
+        logging.info("Searching system (/opt, /var) for config.yml...")
+        cmd = ["find", "/opt", "/var", "-name", "config.yml", "-path", "*/assets/*"]
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        for line in res.stdout.splitlines():
+            if os.path.exists(line):
+                logging.info(f"Auto-discovered Homer config via find: {line}")
+                return line
+    except Exception as e:
+        logging.debug(f"Find command failed: {e}")
+
+    logging.error("Could not find Homer config.yml automatically!")
+    return None
+
+
 def get_open_ports(node):
     host = node['host']
     is_local = node.get('is_local', False)
@@ -170,7 +217,16 @@ def main():
     if not config:
         return
 
-    homer_config_path = config.get('homer_config_path', "/opt/homer/assets/config.yml")
+    homer_config_path = config.get('homer_config_path')
+    if not homer_config_path or not os.path.exists(homer_config_path):
+        logging.info("homer_config_path is missing or invalid in config.yaml. Searching automatically...")
+        homer_config_path = find_homer_config_path()
+        if not homer_config_path:
+            logging.error("Failed to discover Homer config.yml automatically. Exiting.")
+            return
+    else:
+        logging.info(f"Using Homer config from config.yaml: {homer_config_path}")
+
     scan_interval = config.get('scan_interval', 60)
     exclude_ports = config.get('exclude_ports', [])
 
