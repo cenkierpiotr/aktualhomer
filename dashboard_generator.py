@@ -204,17 +204,21 @@ def get_open_ports(node):
     is_local = node.get('is_local', False)
     ssh_user = node.get('ssh_user', 'root')
 
-    # Add process name extraction to ss command (requires -p)
+    # Flaga -p (procesy) może powodować błędy na systemach ze zdalnym użytkownikiem NIE-root.
+    # Używamy jej tylko lokalnie lub gdy zdalny to root.
+    use_process_flag = is_local or (ssh_user == 'root')
+
     if is_local:
-        cmd = ["ss", "-t", "-l", "-n", "-p"]
+        cmd = ["ss", "-t", "-l", "-n"] + (["-p"] if use_process_flag else [])
     else:
-        cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", f"{ssh_user}@{host}", "ss", "-t", "-l", "-n", "-p"]
+        cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", f"{ssh_user}@{host}", "ss", "-t", "-l", "-n"] + (["-p"] if use_process_flag else [])
 
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if res.returncode != 0:
-            logging.error(f"Failed to run ss command on {host}: {res.stderr.strip()}")
+            logging.error(f"Failed to run ss command on {host} (Code {res.returncode}): {res.stderr.strip()}")
             return []
+
         
         ports = []
         for line in res.stdout.splitlines():
