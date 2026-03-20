@@ -177,25 +177,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="glass-card plasma-border-cyan rounded-lg p-6 w-full max-w-md space-y-4">
         <h3 class="text-sm font-bold tracking-widest uppercase text-cyan-400">[ EDIT_NODE_DESCRIPTOR ]</h3>
         <input type="hidden" id="editKey">
-        <div class="space-y-1">
-            <label class="text-[10px] uppercase opacity-60">Nazwa usługi</label>
-            <input type="text" id="editName" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-sm text-white focus:border-cyan-400 focus:outline-none">
-        </div>
-        
-        <div class="space-y-1">
-            <label class="text-[10px] uppercase opacity-60">Kategoria</label>
-            <select id="editCategory" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-sm text-white focus:border-cyan-400 focus:outline-none">
-                <option value="AI">AI</option>
-                <option value="System">System</option>
-                <option value="Storage">Storage</option>
-            </select>
-        </div>
-
-        <div class="space-y-1">
-            <label class="text-[10px] uppercase opacity-60">Opis (opcjonalny)</label>
-            <input type="text" id="editDescription" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-sm text-white focus:border-cyan-400 focus:outline-none">
-        </div>
-
+        <div class="space-y-1"><label class="text-[10px] uppercase opacity-60">Nazwa usługi</label><input type="text" id="editName" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"></div>
+        <div class="space-y-1"><label class="text-[10px] uppercase opacity-60">Kategoria</label><select id="editCategory" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"><option value="AI">AI</option><option value="System">System</option><option value="Storage">Storage</option></select></div>
+        <div class="space-y-1"><label class="text-[10px] uppercase opacity-60">Opis (opcjonalny)</label><input type="text" id="editDescription" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-400"></div>
         <div class="flex gap-3 pt-2">
             <button onclick="saveEdit()" class="flex-1 bg-cyan-500/20 border border-cyan-500/60 hover:bg-cyan-400 hover:text-black py-2 rounded text-xs font-bold uppercase tracking-widest transition-all">Zapisz</button>
             <button onclick="closeEditModal()" class="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 py-2 rounded text-xs font-bold uppercase tracking-widest">Anuluj</button>
@@ -203,41 +187,81 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
 </div>
 
+<!-- Cloudflare Paste Modal -->
+<div id="cloudflareModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="glass-card plasma-border-cyan rounded-lg p-6 w-full max-w-xl space-y-4">
+        <h3 class="text-sm font-bold tracking-widest uppercase text-cyan-400">[ IMPORT_CLOUDFLARE_TABLE ]</h3>
+        <p class="text-[10px] text-white/60">Wklej zawartość tabeli z Cloudflare. Algorytm sam dopasuje domeny do IP.</p>
+        <textarea id="cfPayload" rows="12" class="w-full bg-black/40 border border-cyan-500/30 rounded px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-cyan-400" placeholder="shell.play-cloud.pl ... http://localhost:40237 ..."></textarea>
+        <div class="flex gap-3 pt-2">
+            <button onclick="saveCloudflare()" class="flex-1 bg-cyan-500/20 border border-cyan-500/60 hover:bg-cyan-400 hover:text-black py-2 rounded text-xs font-bold uppercase tracking-widest">Wgraj</button>
+            <button onclick="document.getElementById('cloudflareModal').classList.add('hidden')" class="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 py-2 rounded text-xs font-bold uppercase tracking-widest">Anuluj</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div id="categoryModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+    <div class="glass-card plasma-border-magenta rounded-lg p-6 w-full max-w-md space-y-4">
+        <h3 class="text-sm font-bold tracking-widest uppercase text-magenta-400">[ RENAME_CATEGORIES ]</h3>
+        <div class="space-y-3">
+            <div><label class="text-[10px] uppercase opacity-60">Kategoria AI</label><input type="text" id="catAIName" value="%%AI_TITLE%%" class="w-full bg-black/40 border border-magenta-500/30 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-magenta-400"></div>
+            <div><label class="text-[10px] uppercase opacity-60">Kategoria System</label><input type="text" id="catSystemName" value="%%SYSTEM_TITLE%%" class="w-full bg-black/40 border border-magenta-500/30 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-magenta-400"></div>
+            <div><label class="text-[10px] uppercase opacity-60">Kategoria Storage</label><input type="text" id="catStorageName" value="%%STORAGE_TITLE%%" class="w-full bg-black/40 border border-magenta-500/30 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-magenta-400"></div>
+        </div>
+        <div class="flex gap-3 pt-2">
+            <button onclick="saveCategories()" class="flex-1 bg-magenta-500/20 border border-magenta-500/60 hover:bg-magenta-400 hover:text-black py-2 rounded text-xs font-bold uppercase tracking-widest">Zapisz</button>
+            <button onclick="document.getElementById('categoryModal').classList.add('hidden')" class="flex-1 bg-white/5 border border-white/10 hover:bg-white/10 py-2 rounded text-xs font-bold uppercase tracking-widest">Anuluj</button>
+        </div>
+    </div>
+</div>
+
 <script>
-    function openEditModal(key, name, cat, desc) {
-        document.getElementById('editKey').value = key;
-        document.getElementById('editName').value = name;
-        document.getElementById('editCategory').value = cat;
-        document.getElementById('editDescription').value = desc === 'undefined' ? '' : desc;
-        document.getElementById('editModal').classList.remove('hidden');
+    // --- DRAG & DROP LOGIC ---
+    let draggedKey = null;
+    function drag(evt, key) { draggedKey = key; evt.dataTransfer.setData("text", key); }
+    function allowDrop(evt) { evt.preventDefault(); }
+    function drop(evt, cat) {
+        evt.preventDefault();
+        if (!draggedKey) return;
+        fetch('/api/edit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: draggedKey, category: cat })
+        }).then(res => { if (res.ok) setTimeout(() => window.location.reload(), 200); });
     }
 
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
+    // --- MODAL & API LOGIC ---
+    function openEditModal(key, name, cat, desc) {
+        document.getElementById('editKey').value = key;document.getElementById('editName').value = name;document.getElementById('editCategory').value = cat;document.getElementById('editDescription').value = desc === 'undefined' ? '' : desc;document.getElementById('editModal').classList.remove('hidden');
     }
+    function closeEditModal() { document.getElementById('editModal').classList.add('hidden'); }
 
     function saveEdit() {
         const key = document.getElementById('editKey').value;
         const name = document.getElementById('editName').value;
         const category = document.getElementById('editCategory').value;
         const description = document.getElementById('editDescription').value;
+        fetch('/api/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, name, category, description }) })
+        .then(res => { if (res.ok) { closeEditModal(); setTimeout(() => window.location.reload(), 500); } else { alert('Błąd zapisu!'); } });
+    }
 
-        fetch('/api/edit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key, name, category, description })
-        })
-        .then(res => {
-            if (res.ok) {
-                closeEditModal();
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                alert('Błąd zapisu!');
-            }
-        });
+    function openCloudflareModal() { document.getElementById('cloudflareModal').classList.remove('hidden'); }
+    function saveCloudflare() {
+        const payload = document.getElementById('cfPayload').value;
+        fetch('/api/import_cloudflare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ payload }) })
+        .then(res => { if (res.ok) { document.getElementById('cloudflareModal').classList.add('hidden'); setTimeout(() => window.location.reload(), 1000); } else { alert('Błąd wgrania!'); } });
+    }
+
+    function openCategoryModal() { document.getElementById('categoryModal').classList.remove('hidden'); }
+    function saveCategories() {
+        const titles = { AI: document.getElementById('catAIName').value, System: document.getElementById('catSystemName').value, Storage: document.getElementById('catStorageName').value };
+        fetch('/api/rename_category', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(titles) })
+        .then(res => { if (res.ok) { document.getElementById('categoryModal').classList.add('hidden'); setTimeout(() => window.location.reload(), 500); } else { alert('Błąd zapisu!'); } });
     }
 </script>
 </body></html>"""
+
 
 ITEM_TEMPLATE_CYAN = """
 <div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative cursor-move" draggable="true" ondragstart="drag(event, '{key}')">
