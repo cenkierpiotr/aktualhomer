@@ -1,0 +1,10 @@
+homer_config_path: "/config/.gemini/antigravity/scratch/homer-link-syncer/assets/config.yml"
+scan_interval: 5
+
+nodes:
+  - name: "Test Node"
+    host: "127.0.0.1"
+    is_local: true
+
+exclude_ports:
+  - 22
