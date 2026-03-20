@@ -306,14 +306,18 @@ def load_cloudflare_mappings():
         return mappings
     try:
         with open("cloudflare_mappings.txt", 'r') as f:
+            # Usuwamy puste linie i białe znaki
             lines = [line.strip() for line in f if line.strip()]
             records = []
-            # Parse blocks of 4 OR treat list as continuous
-            for i in range(0, len(lines), 4):
-                if i + 2 < len(lines):
-                    domain = lines[i]
-                    target = lines[i+2]
-                    records.append({'domain': domain, 'target': target})
+            
+            # Zakotwiczamy parsowanie na liniach zaczynających się od protokołu http
+            for idx, line in enumerate(lines):
+                if line.startswith("http://") or line.startswith("https://"):
+                    if idx >= 2:
+                        domain = lines[idx - 2]
+                        # Upewniamy się, że linia wygląda na domenę (ma kropkę)
+                        if '.' in domain and '*' not in domain:
+                            records.append({'domain': domain, 'target': line})
             
             for r in records:
                 target = r['target']
@@ -332,6 +336,7 @@ def load_cloudflare_mappings():
     except Exception as e:
         logging.error(f"Error parsing Cloudflare mappings: {e}")
     return mappings
+
 
 
 def get_open_ports(node):
