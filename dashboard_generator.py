@@ -118,57 +118,64 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
 <!-- Top Status Bar -->
 <div class="w-full px-6 pt-8 pb-4 flex justify-between items-center max-w-5xl mx-auto">
-<div class="flex items-center gap-3">
-<div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#0ff]"></div>
-<span class="text-xs font-bold tracking-[0.3em] uppercase text-cyan-400 neon-text-cyan">Dashboard // System Active</span>
-</div>
-<div class="text-[10px] font-mono opacity-40 uppercase tracking-widest hidden sm:block">
+    <div class="flex items-center gap-3">
+        <div class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_10px_#0ff]"></div>
+        <span class="text-xs font-bold tracking-[0.3em] uppercase text-cyan-400 neon-text-cyan">Dashboard // System Active</span>
+    </div>
+    <div class="flex items-center gap-4">
+        <button onclick="openCloudflareModal()" class="text-[10px] uppercase tracking-widest bg-cyan-500/10 border border-cyan-500/30 hover:bg-cyan-500/20 px-3 py-1 rounded text-cyan-400 transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">cloud_sync</span> Cloudflare
+        </button>
+        <button onclick="openCategoryModal()" class="text-[10px] uppercase tracking-widest bg-magenta-500/10 border border-magenta-500/30 hover:bg-magenta-500/20 px-3 py-1 rounded text-magenta-400 transition-all flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">edit</span> Kategorie
+        </button>
+        <div class="text-[10px] font-mono opacity-40 uppercase tracking-widest hidden sm:block">
             Last Scan: %%LAST_SCAN%%
         </div>
+    </div>
 </div>
 
 <main class="max-w-5xl mx-auto px-6 pb-20 space-y-10">
 
 <!-- 1. AI Section -->
-<section class="relative">
-<div class="flex items-center gap-4 mb-6">
-<h2 class="text-sm font-bold tracking-[0.3em] uppercase neon-text-cyan">[ 01 // CORE_AI_ENGINE ]</h2>
-<div class="h-[2px] flex-1 bg-gradient-to-r from-[#0ff] to-transparent opacity-50"></div>
-</div>
-<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-%%AI_ITEMS%%
-</div>
+<section class="relative category-section" id="cat-AI" ondragover="allowDrop(event)" ondrop="drop(event, 'AI')">
+    <div class="flex items-center gap-4 mb-6">
+        <h2 class="text-sm font-bold tracking-[0.3em] uppercase neon-text-cyan">[ %%AI_TITLE%% ]</h2>
+        <div class="h-[2px] flex-1 bg-gradient-to-r from-[#0ff] to-transparent opacity-50"></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" id="grid-AI">
+        %%AI_ITEMS%%
+    </div>
 </section>
 
 <!-- 2. Management Section (System) -->
-<section>
-<div class="flex items-center gap-4 mb-6">
-<h2 class="text-sm font-bold tracking-[0.3em] uppercase neon-text-magenta">[ 02 // SYS_MANAGEMENT ]</h2>
-<div class="h-[2px] flex-1 bg-gradient-to-r from-[#f0f] to-transparent opacity-50"></div>
-</div>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-%%SYSTEM_ITEMS%%
-</div>
+<section class="relative category-section" id="cat-System" ondragover="allowDrop(event)" ondrop="drop(event, 'System')">
+    <div class="flex items-center gap-4 mb-6">
+        <h2 class="text-sm font-bold tracking-[0.3em] uppercase neon-text-magenta">[ %%SYSTEM_TITLE%% ]</h2>
+        <div class="h-[2px] flex-1 bg-gradient-to-r from-[#f0f] to-transparent opacity-50"></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="grid-System">
+        %%SYSTEM_ITEMS%%
+    </div>
 </section>
 
 <!-- 3. Storage Section (Pliki) -->
-<section>
-<div class="flex items-center gap-4 mb-6">
-<h2 class="text-sm font-bold tracking-[0.3em] uppercase neon-text-lime">[ 03 // DATA_STORAGE ]</h2>
-<div class="h-[2px] flex-1 bg-gradient-to-r from-[#0f0] to-transparent opacity-50"></div>
-</div>
-<div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-%%STORAGE_ITEMS%%
-</div>
+<section class="relative category-section" id="cat-Storage" ondragover="allowDrop(event)" ondrop="drop(event, 'Storage')">
+    <div class="flex items-center gap-4 mb-6">
+        <h2 class="text-sm font-bold tracking-[0.3em] uppercase neon-text-lime">[ %%STORAGE_TITLE%% ]</h2>
+        <div class="h-[2px] flex-1 bg-gradient-to-r from-[#0f0] to-transparent opacity-50"></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="grid-Storage">
+        %%STORAGE_ITEMS%%
+    </div>
 </section>
 
 </main>
 
-<!-- Edit Modal -->
+<!-- Edit Card Modal -->
 <div id="editModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
     <div class="glass-card plasma-border-cyan rounded-lg p-6 w-full max-w-md space-y-4">
         <h3 class="text-sm font-bold tracking-widest uppercase text-cyan-400">[ EDIT_NODE_DESCRIPTOR ]</h3>
-        
         <input type="hidden" id="editKey">
         <div class="space-y-1">
             <label class="text-[10px] uppercase opacity-60">Nazwa usługi</label>
@@ -233,7 +240,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </body></html>"""
 
 ITEM_TEMPLATE_CYAN = """
-<div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative">
+<div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative cursor-move" draggable="true" ondragstart="drag(event, '{key}')">
     <a href="{url}" target="_blank" class="flex flex-col gap-3 flex-1">
         <span class="material-symbols-outlined text-[#0ff] group-hover:animate-pulse">{icon}</span>
         <div class="space-y-1">
@@ -248,7 +255,7 @@ ITEM_TEMPLATE_CYAN = """
 </div>"""
 
 ITEM_TEMPLATE_MAGENTA = """
-<div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative">
+<div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative cursor-move" draggable="true" ondragstart="drag(event, '{key}')">
     <a href="{url}" target="_blank" class="flex flex-col gap-3 flex-1">
         <span class="material-symbols-outlined text-[#f0f] group-hover:animate-pulse">{icon}</span>
         <div class="space-y-1">
@@ -263,7 +270,7 @@ ITEM_TEMPLATE_MAGENTA = """
 </div>"""
 
 ITEM_TEMPLATE_LIME = """
-<div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative">
+<div class="glass-card {plasma_border} rounded-lg p-5 flex flex-col gap-3 group relative cursor-move" draggable="true" ondragstart="drag(event, '{key}')">
     <a href="{url}" target="_blank" class="flex flex-col gap-3 flex-1">
         <span class="material-symbols-outlined text-[#0f0] group-hover:animate-pulse">{icon}</span>
         <div class="space-y-1">
@@ -276,6 +283,7 @@ ITEM_TEMPLATE_LIME = """
         <span class="material-symbols-outlined text-xs">edit</span>
     </button>
 </div>"""
+
 
 
 def load_config():
@@ -428,9 +436,15 @@ def generate_dashboard(services_by_category, mappings, overrides):
     system_html = ""
     storage_html = ""
 
-    # Dodatkowe style na wypadek braku domeny
-    # Klasa 'border-dashed' i kolor 'amber'
-    
+    # Kategorie z overrides lub domyślne
+    cat_titles = overrides.get("categories", {
+        "AI": "01 // CORE_AI_ENGINE",
+        "System": "02 // SYS_MANAGEMENT",
+        "Storage": "03 // DATA_STORAGE"
+    })
+
+    main_overrides = overrides.get("overrides", {})
+
     for cat, items in services_by_category.items():
         for item in items:
             host = item['host']
@@ -440,7 +454,7 @@ def generate_dashboard(services_by_category, mappings, overrides):
             orig_subtitle = item['subtitle']
 
             key = f"{host}:{port}"
-            override = overrides.get(key, {})
+            override = main_overrides.get(key, {})
 
             name = override.get('name', orig_name)
             item_cat = override.get('category', cat)
@@ -454,7 +468,6 @@ def generate_dashboard(services_by_category, mappings, overrides):
                 plasma_border = "plasma-border-cyan" if item_cat == 'AI' else "plasma-border-magenta" if item_cat == 'System' else "plasma-border-lime"
             else:
                 url = item['url']
-                # Amber highlight and dashed border for missing domains
                 plasma_border = "border border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] border-dashed" 
 
             desc_html = f'<p class="text-[9px] text-white/40 italic">{description}</p>' if description else ""
@@ -470,7 +483,6 @@ def generate_dashboard(services_by_category, mappings, overrides):
                 rendered_item = ITEM_TEMPLATE_MAGENTA.format(name=name, url=url, subtitle=orig_subtitle, icon=icon, plasma_border=plasma_border, desc_html=desc_html, key=key, cat=item_cat, description=description)
                 system_html += rendered_item
 
-    # Fill sections if empty with placeholder/message
     if not ai_html: ai_html = "<div class='text-xs opacity-50'>Brak usług AI</div>"
     if not system_html: system_html = "<div class='text-xs opacity-50'>Brak usług Systemu</div>"
     if not storage_html: storage_html = "<div class='text-xs opacity-50'>Brak usług Storage</div>"
@@ -481,51 +493,71 @@ def generate_dashboard(services_by_category, mappings, overrides):
     html = html.replace("%%STORAGE_ITEMS%%", storage_html)
     html = html.replace("%%LAST_SCAN%%", now_str)
 
+    # Wstawienie kategorii
+    html = html.replace("%%AI_TITLE%%", cat_titles.get("AI", "01 // CORE_AI_ENGINE"))
+    html = html.replace("%%SYSTEM_TITLE%%", cat_titles.get("System", "02 // SYS_MANAGEMENT"))
+    html = html.replace("%%STORAGE_TITLE%%", cat_titles.get("Storage", "03 // DATA_STORAGE"))
+
     with open(OUTPUT_FILE, 'w') as f:
         f.write(html)
     logging.info(f"Dashboard generated in {OUTPUT_FILE}")
 
 def run_web_server(port):
     class CustomHandler(http.server.SimpleHTTPRequestHandler):
-        def log_message(self, format, *args):
-            return # Silence logs
+        def log_message(self, format, *args): return # Silence
 
         def do_POST(self):
-            if self.path == '/api/edit':
-                try:
-                    content_length = int(self.headers['Content-Length'])
-                    post_data = self.rfile.read(content_length).decode('utf-8')
-                    data = json.loads(post_data)
-                    
-                    overrides = load_overrides()
+            try:
+                content_length = int(self.headers['Content-Length'])
+                post_data = self.rfile.read(content_length).decode('utf-8')
+                data = json.loads(post_data)
+
+                if self.path == '/api/edit':
+                    all_data = load_overrides()
+                    if "overrides" not in all_data: all_data["overrides"] = {}
+                    overrides = all_data["overrides"]
+
                     key = data.get('key')
                     if key:
-                        overrides[key] = {
-                            'name': data.get('name'),
-                            'category': data.get('category'),
-                            'description': data.get('description'),
-                        }
-                        with open("overrides.json", 'w') as f:
-                            json.dump(overrides, f, indent=2)
-                        
+                        # Partial update to protect description on drag & drop
+                        if key not in overrides: overrides[key] = {}
+                        if 'name' in data: overrides[key]['name'] = data['name']
+                        if 'category' in data: overrides[key]['category'] = data['category']
+                        if 'description' in data: overrides[key]['description'] = data['description']
+
+                        with open("overrides.json", 'w') as f: json.dump(all_data, f, indent=2)
                         logging.info(f"Updated override for {key}")
-                        trigger_scan_event.set() # Trigger rescan!
+                        trigger_scan_event.set()
 
-                    self.send_response(200)
-                    self.send_header('Content-type', 'application/json')
-                    self.end_headers()
-                    self.wfile.write(b'{"status": "ok"}')
-                    return
-                except Exception as e:
-                    logging.error(f"Error handling POST /api/edit: {e}")
-                    self.send_response(500)
-                    self.end_headers()
-                    return
+                elif self.path == '/api/rename_category':
+                    all_data = load_overrides()
+                    all_data["categories"] = {
+                        "AI": data.get("AI"),
+                        "System": data.get("System"),
+                        "Storage": data.get("Storage")
+                    }
+                    with open("overrides.json", 'w') as f: json.dump(all_data, f, indent=2)
+                    logging.info("Categories renamed")
+                    trigger_scan_event.set()
 
-            self.send_response(404)
-            self.end_headers()
+                elif self.path == '/api/import_cloudflare':
+                    with open("cloudflare_mappings.txt", 'w') as f: f.write(data.get("payload", ""))
+                    logging.info("Cloudflare mappings imported from Web UI")
+                    trigger_scan_event.set()
 
-    # Allow port reuse to avoid Address already in use error on restarts
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(b'{"status": "ok"}')
+                return
+
+            except Exception as e:
+                logging.error(f"Error handling POST {self.path}: {e}")
+                self.send_response(500); self.end_headers()
+                return
+
+            self.send_response(404); self.end_headers()
+
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("", port), CustomHandler) as httpd:
         logging.info(f"Dashboard HTTP Server running on port {port}")
@@ -539,7 +571,6 @@ def main():
     scan_interval = config.get('scan_interval', 60)
     exclude_ports = config.get('exclude_ports', [])
 
-    # Start Web Server in a background thread
     server_thread = threading.Thread(target=run_web_server, args=(port,), daemon=True)
     server_thread.start()
 
@@ -550,6 +581,10 @@ def main():
         mappings = load_cloudflare_mappings()
         overrides = load_overrides()
 
+        # Build reverse lookup map to avoid duplicates if overrides overlap
+        seen_keys = set()
+
+        # Load node scans
         for node in config.get('nodes', []):
             host = node['host']
             node_name = node['name']
@@ -560,9 +595,14 @@ def main():
                 process_name = port_data['process']
                 if port_num in exclude_ports: continue
                 
+                key = f"{host}:{port_num}"
+                if key in seen_keys: continue
+                seen_keys.add(key)
+
                 logging.info(f"Checking port {port_num} ({process_name}) on {host}...")
                 title = get_page_title(host, port_num, fallback_name=process_name)
                 if title:
+                    # Categorize originally
                     cat, icon = categorize_service(title)
                     services_by_cat[cat].append({
                         'name': title,
@@ -580,5 +620,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
