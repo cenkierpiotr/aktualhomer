@@ -204,11 +204,11 @@ def get_open_ports(node):
     is_local = node.get('is_local', False)
     ssh_user = node.get('ssh_user', 'root')
 
+    # Add process name extraction to ss command (requires -p)
     if is_local:
-        cmd = ["ss", "-t", "-l", "-n"]
+        cmd = ["ss", "-t", "-l", "-n", "-p"]
     else:
-        cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", f"{ssh_user}@{host}", "ss", "-t", "-l", "-n"]
-
+        cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "StrictHostKeyChecking=no", "-o", "BatchMode=yes", f"{ssh_user}@{host}", "ss", "-t", "-l", "-n", "-p"]
 
     try:
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
@@ -216,35 +216,48 @@ def get_open_ports(node):
             logging.error(f"Failed to run ss command on {host}: {res.stderr.strip()}")
             return []
         
-        ports = set()
+        ports = []
         for line in res.stdout.splitlines():
             if "LISTEN" not in line: continue
             parts = line.split()
             if len(parts) < 4: continue
+            
             local_addr = parts[3]
             if ':' not in local_addr: continue
             addr, port_str = local_addr.rsplit(':', 1)
             if addr in ['127.0.0.1', '::1', 'localhost']: continue
+            
+            # Extract process name if present
+            process_name = "System"
+            if len(parts) > 5:
+                # e.g. users:(("nginx",pid=123,fd=6))
+                match = re.search(r'users:\(\(\"([^\"]+)\"', line)
+                if match:
+                    process_name = match.group(1).capitalize()
+
             try:
                 port = int(port_str)
-                ports.add(port)
+                ports.append({'port': port, 'process': process_name})
             except ValueError:
                 continue
-        return list(ports)
+        return ports
     except Exception as e:
         logging.error(f"Error scanning ports for {host}: {e}")
         return []
 
-def get_page_title(host, port):
+
+def get_page_title(host, port, fallback_name="Service"):
     url = f"http://{host}:{port}"
     try:
         res = requests.get(url, timeout=2)
-        if res.status_code >= 200 and res.status_code < 400:
-            match = re.search(r'<title>(.*?)</title>', res.text, re.IGNORECASE | re.DOTALL)
-            if match:
-                title = match.group(1).strip()
-                return " ".join(title.split())
-            return f"Service {port}"
+        # Zezwalamy na każdy status code (nawet 4xx/5xx - jeśli jest odpowiedź, to strona istnieje)
+        html = res.text
+        match = re.search(r'<title>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
+        if match:
+            title = match.group(1).strip()
+            # Czyścimy z białych znaków
+            return " ".join(title.split())
+        return fallback_name if fallback_name else f"Port {port}"
     except Exception:
         pass
     return None
@@ -329,16 +342,19 @@ def main():
             node_name = node['name']
             ports = get_open_ports(node)
 
-            for port_num in ports:
+            for port_data in ports:
+                port_num = port_data['port']
+                process_name = port_data['process']
                 if port_num in exclude_ports: continue
                 
-                title = get_page_title(host, port_num)
+                logging.info(f"Checking port {port_num} ({process_name}) on {host}...")
+                title = get_page_title(host, port_num, fallback_name=process_name)
                 if title:
                     cat, icon = categorize_service(title)
                     services_by_cat[cat].append({
                         'name': title,
                         'url': f"http://{host}:{port_num}",
-                        'subtitle': f"{node_name} | Por: {port_num}",
+                        'subtitle': f"{node_name} | Port: {port_num}",
                         'icon': icon
                     })
 
@@ -348,3 +364,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
